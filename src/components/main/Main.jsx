@@ -1,10 +1,10 @@
-import { useContext, useEffect, useRef } from 'react'
-import { assets } from '../../assets/assets'
-import './Main.css'
-import { Context } from '../../context/Context'
+import { useContext, useEffect, useRef } from 'react';
+import { assets } from '../../assets/assets';
+import './Main.css';
+import { Context } from '../../context/Context';
 
 const Main = () => {
-    const { onSent, recentPrompt, showResult, loading, resultData, setInput, input } = useContext(Context)
+    const { onSent, recentPrompt, showResult, loading, resultData, setInput, input } = useContext(Context);
     const recognitionRef = useRef(null);
 
     useEffect(() => {
@@ -16,13 +16,22 @@ const Main = () => {
             recognition.continuous = false;
             recognition.interimResults = false;
 
+            recognition.onstart = () => {
+                console.log("Speech recognition started");
+            };
+
             recognition.onresult = (event) => {
                 const speechToText = event.results[0][0].transcript;
+                console.log("Speech recognized:", speechToText);
                 setInput(speechToText);
             };
 
             recognition.onerror = (event) => {
-                console.error("Speech recognition error", event.error);
+                console.error("Speech recognition error:", event.error);
+            };
+
+            recognition.onend = () => {
+                console.log("Speech recognition ended");
             };
 
             recognitionRef.current = recognition;
@@ -36,6 +45,12 @@ const Main = () => {
             recognitionRef.current.start();
         } else {
             alert("Speech Recognition is not supported in this browser.");
+        }
+    };
+
+    const handleKeyDown = (event) => {
+        if (event.key === 'Enter') {
+            onSent();
         }
     };
 
@@ -87,7 +102,13 @@ const Main = () => {
                     </div>}
                 <div className="main-bottom">
                     <div className="search-box">
-                        <input type="text" onChange={(e) => setInput(e.target.value)} value={input} placeholder="Ask Gemini" />
+                        <input 
+                            type="text" 
+                            onChange={(e) => setInput(e.target.value)} 
+                            onKeyDown={handleKeyDown} 
+                            value={input} 
+                            placeholder="Ask Gemini" 
+                        />
                         <div>
                             <img src={assets.gallery_icon} alt="" />
                             <img src={assets.mic_icon} alt="mic" onClick={handleMicClick} />
@@ -100,7 +121,7 @@ const Main = () => {
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default Main;
